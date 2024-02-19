@@ -1,0 +1,28 @@
+{
+  "name": "k-spider-script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyssion/k-spider-script-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kyssion/k-spider-script-js/issues"
+  },
+  "homepage": "https://github.com/kyssion/k-spider-script-js#readme",
+  "dependencies": {
+    "puppeteer": "^22.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
