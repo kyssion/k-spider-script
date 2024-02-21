@@ -5,7 +5,8 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "npx playwright test --ui"
   },
   "repository": {
     "type": "git",
@@ -18,10 +19,12 @@
   },
   "homepage": "https://github.com/kyssion/k-spider-script-js#readme",
   "dependencies": {
+    "@playwright/test": "^1.41.2",
+    "jsdom": "^24.0.0",
+    "playwright": "^1.41.2",
     "puppeteer": "^22.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.41.2",
     "@types/node": "^20.11.19",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
