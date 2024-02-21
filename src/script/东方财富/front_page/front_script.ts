@@ -16,8 +16,22 @@ const demo = async() => {
     // const pageA = await newContextA.newPage()
     // const pageB = await newContextB.newPage()
 
+
+    Puppeteer.registerCustomQueryHandler('getById', {
+        queryOne: (elementOrDocument, selector) => {
+            if (elementOrDocument.ownerDocument == null){
+                return null
+            }
+            return elementOrDocument.ownerDocument.querySelector(`[id="${CSS.escape(selector)}"]`);
+        }
+    });
     // goto 方法跳转到百度中
     await defaultPage.goto("https://www.bilibili.com")
+    const element = await defaultPage.waitForSelector('div > .bili-header__channel');
+    console.log(element)
+
+    const node = await defaultPage.waitForSelector('::-p-getById(i_cecream)');
+    console.log(element)
 
     // -- 这里是浏览器页面中的操作
     // 操作...

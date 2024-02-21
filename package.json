@@ -2,11 +2,10 @@
   "name": "k-spider-script",
   "version": "1.0.0",
   "description": "",
-  "type":  "commonjs",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -22,6 +21,7 @@
     "puppeteer": "^22.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.41.2",
     "@types/node": "^20.11.19",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
