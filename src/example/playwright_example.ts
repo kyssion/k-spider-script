@@ -2,9 +2,10 @@ import { chromium, devices } from 'playwright';
 import assert from 'node:assert';
 
 (async () => {
-    // 创建一个浏览器进程
+    // 创建一个浏览器进程 - 这里客户以指定启动本机浏览器
     const browser = await chromium.launch(
         {
+            executablePath:"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
             headless:false
         }
     );
