@@ -38,7 +38,7 @@ let run = async () => {
     let virtualConsole = new jsdom.VirtualConsole() // 请注意，最好在调用之前new JSDOM()设置这些事件侦听器，因为在解析过程中可能会出现错误或控制台调用脚本。）
     let dom = await JSDOM.fromURL("https://finance.eastmoney.com/a/cgjjj.html", {
         runScripts: "dangerously", // 启用js脚本能力支持
-        pretendToBeVisual: true, // 虚拟化渲染能力
+        pretendToBeVisual: false, // 虚拟化渲染能力
         resources: new CustomLoader({// 启用资源加载能力
             strictSSL: true, // 启用https 能力
             userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -46,6 +46,7 @@ let run = async () => {
         virtualConsole: virtualConsole, // 启用虚拟控制台监听能力 , 监听输出
         includeNodeLocations: true, // 是否查找节点在源文档中的位置 - 暂时不需要
         beforeParse(window: jsdom.DOMWindow): void { // 在页面渲染前做点啥
+            window.scrollTo = function (){}
         }
     })
     virtualConsole.sendTo(console, { // 将虚拟平台的信息输出到console中
