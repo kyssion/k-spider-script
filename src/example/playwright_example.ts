@@ -1,55 +1,37 @@
-import { chromium, devices } from 'playwright';
-import assert from 'node:assert';
+import * as playwright from 'playwright';
+import {chromium, test} from "@playwright/test";
 
-let demo1 = async () => {
-    // 创建一个浏览器进程 使用的是无痕模式 - 这里客户以指定启动本机浏览器
+let run = (async ()=>{
+    // 开启一个 chromium 进程
     const browser = await chromium.launch(
         {
-            executablePath:"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-            headless:false
+            headless: false,
         }
     );
-    // 创建一个串口
-    const context = await browser.newContext();
+    // 开启一个页面窗口
+    const context =await browser.newContext();
+    // 开启一个详细的页面
+    const page = await context.newPage();
 
+    await Promise.all([
+        page.goto("https://finance.eastmoney.com/a/ccjdd.html"),
+        page.waitForLoadState('load')
+    ])
 
-    // 抓取数据
-    const page1 = await context.newPage();
-    await page1.goto('https://www.bilibili.com/');
-    const page2 = await context.newPage();
-    await page2.goto('https://www.baidu.com/');
-    const page3 = await context.newPage();
-    await page3.goto('https://www.bing.com/');
-
-    setTimeout(async ()=>{
-        await context.close();
-        await browser.close();
-    },1000000)
-    // Teardown
-};
-let demo2 = async () => {
-    // 创建一个串口
-    const context  = await chromium.launchPersistentContext(
-        "/Users/bytedance/Library/Application Support/Microsoft Edge/Default",
-        {
-            executablePath: "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-            headless:false
+    // 传入script脚本获取数据
+    let ans = await page.evaluate( ()=>{
+        let item =  document.querySelector("#newsListContent")
+        if (item==null){
+            return null
         }
-    );
+        return item.getElementsByClassName("title")[0].innerHTML
+    })
+    console.log(ans)
+    await page.close()
+    await context.close()
+    await browser.close()
+})
 
+run().then(()=>{
 
-    // 抓取数据
-    const page1 = await context.newPage();
-    await page1.goto('https://www.bilibili.com/');
-    const page2 = await context.newPage();
-    await page2.goto('https://www.baidu.com/');
-    const page3 = await context.newPage();
-    await page3.goto('https://www.bing.com/');
-
-    setTimeout(async ()=>{
-        await context.close();
-    },1000000)
-    // Teardown
-};
-
-demo2()
+});

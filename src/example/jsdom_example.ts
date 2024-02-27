@@ -56,7 +56,6 @@ let run = async () => {
     dom.window.onload = function () { // 监听dom是否完成
 
         let ansInfo = new Map<string, any>();
-
         let nowItem =dom.window.document.getElementById("newsListContent");
         let childLi = nowItem?.getElementsByTagName("li")
         if (childLi) {
