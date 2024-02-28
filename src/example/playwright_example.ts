@@ -1,12 +1,9 @@
 import * as playwright from 'playwright';
-import {chromium, test} from "@playwright/test";
-import {match} from "node:assert";
-import {inflate} from "node:zlib";
 
 
 let run = (async () => {
     // 开启一个 chromium 进程
-    const browser = await chromium.launch(
+    const browser = await playwright.chromium.launch(
         {
             headless: false,
         }
