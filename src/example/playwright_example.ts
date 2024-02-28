@@ -13,6 +13,14 @@ let run = (async () => {
     );
     // 开启一个页面窗口
     const context = await browser.newContext();
+
+    // 开启收集console 信息 , 方便进行debug
+    context.on('console', async msg => {
+        const values = [];
+        for (const arg of msg.args())
+            values.push(await arg.jsonValue());
+        console.log(...values);
+    });
     // 开启一个详细的页面
     const page = await context.newPage();
 
@@ -23,17 +31,57 @@ let run = (async () => {
     // 传入script脚本获取数据 -- 注意evaluate 只能使用的序列化的对象
     // let ans = await getByEvaluate(page);
 
+    // 当程序崩溃或者手动关闭的页面的时候触发.
+    browser.on('disconnected', data => {
+
+    });
     // 使用查询方法获取数据
-    let ansV2 = await getByApi(page);
-
-
+    let ansV2 = await GetByApiBy$(page);
     console.log(ansV2)
     await page.close()
     await context.close()
     await browser.close()
 })
 
-let getByApi = async function (page: playwright.Page) {
+let GetByApiBy$ = async  function (page: playwright.Page){
+    // 这个会阻止 js的垃圾回收处理.
+    let ans = new Map<string, any>();
+    let needListItem =await page.$("#newsListContent")
+    if (needListItem== null){
+        return "";
+    }
+    let childLi =await needListItem.$$("li")
+    for (let liItem of childLi.values()) {
+        let textDiv = (await liItem.$$(".text")).at(0);
+        if (textDiv != null) {
+            let title = (await textDiv.$$(".title")).at(0);
+            let info = (await textDiv.$$(".info")).at(0);
+            let timeNode = (await textDiv.$$(".time")).at(0);
+            if (title && info) {
+                let titleA = (await title.$$("a")).at(0);
+                if (titleA==null || timeNode==null){
+                    continue
+                }
+                let dataUrl = await titleA.getAttribute("href")??"";
+                let dataTitle = await titleA.innerHTML();
+                let dataTime = await timeNode.innerHTML()
+                let dataInfo = await info.getAttribute("title") ?? "";
+
+                if (dataTitle) {
+                    ans.set(dataTitle, {
+                        Url: dataUrl,
+                        Title: dataTitle,
+                        Info: dataInfo,
+                        Time: dataTime
+                    })
+                }
+            }
+        }
+    }
+    return JSON.stringify(Object.fromEntries(ans))
+}
+
+let getByApiByLocator = async function (page: playwright.Page) {
     let ans = new Map<string, any>();
     let needListItem = page.locator("css=#newsListContent");
     if (await needListItem.count() == 0) {
@@ -47,7 +95,6 @@ let getByApi = async function (page: playwright.Page) {
         // 注意这里有一个坑, playwright 需要手动指定对应的css样式
         let textDiv = rowItem.locator("css= .text").nth(0);
         if (await textDiv.count() != 0) {
-            let z =await textDiv.innerHTML()
             let title = textDiv.locator("css=.title").nth(0);
             let info = textDiv.locator("css=.info").nth(0);
             let timeNode = textDiv.locator("css=.time").nth(0);

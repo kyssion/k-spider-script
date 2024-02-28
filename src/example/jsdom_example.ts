@@ -53,6 +53,7 @@ let run = async () => {
         omitJSDOMErrors: false // todo 这个参数暂时意义不明 如果您使用sendTo(c)将错误发送到c，默认情况下它将c.error(errorStack[, errorDetail])使用事件中的信息进行调用"jsdomError"。如果您希望维护事件到方法调用的严格一对一映射，并且可能"jsdomError"自己处理，那么您可以这样做
     });
 
+
     dom.window.onload = function () { // 监听dom是否完成
 
         let ansInfo = new Map<string, any>();
