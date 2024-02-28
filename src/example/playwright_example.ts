@@ -1,7 +1,10 @@
 import * as playwright from 'playwright';
 import {chromium, test} from "@playwright/test";
+import {match} from "node:assert";
+import {inflate} from "node:zlib";
 
-let run = (async ()=>{
+
+let run = (async () => {
     // 开启一个 chromium 进程
     const browser = await chromium.launch(
         {
@@ -9,7 +12,7 @@ let run = (async ()=>{
         }
     );
     // 开启一个页面窗口
-    const context =await browser.newContext();
+    const context = await browser.newContext();
     // 开启一个详细的页面
     const page = await context.newPage();
 
@@ -17,14 +20,64 @@ let run = (async ()=>{
         page.goto("https://finance.eastmoney.com/a/ccjdd.html"),
         page.waitForLoadState('load')
     ])
+    // 传入script脚本获取数据 -- 注意evaluate 只能使用的序列化的对象
+    // let ans = await getByEvaluate(page);
 
-    // 传入script脚本获取数据
-    let ans = await page.evaluate( ()=>{
-        let ansInfo = new Map<string, any>();
+    // 使用查询方法获取数据
+    let ansV2 = await getByApi(page);
 
-        let item =  document.querySelector("#newsListContent")
-        if (item==null){
-            return null
+
+    console.log(ansV2)
+    await page.close()
+    await context.close()
+    await browser.close()
+})
+
+let getByApi = async function (page: playwright.Page) {
+    let ans = new Map<string, any>();
+    let needListItem = page.locator("css=#newsListContent");
+    if (await needListItem.count() == 0) {
+        return ""
+    }
+    let childLi = needListItem.locator("css=li")
+    if (await childLi.count() == 0) {
+        return ""
+    }
+    for (let rowItem of await childLi.all()) {
+        // 注意这里有一个坑, playwright 需要手动指定对应的css样式
+        let textDiv = rowItem.locator("css= .text").nth(0);
+        if (await textDiv.count() != 0) {
+            let z =await textDiv.innerHTML()
+            let title = textDiv.locator("css=.title").nth(0);
+            let info = textDiv.locator("css=.info").nth(0);
+            let timeNode = textDiv.locator("css=.time").nth(0);
+            if (await title.count() != 9 && await info.count() != 0) {
+                let titleA = title.locator("css=a").nth(0);
+                let dataUrl = await titleA.getAttribute("href") ?? "";
+                let dataTitle = await titleA.innerHTML();
+                let dataInfo = await info.getAttribute("title") ?? "";
+                let dataTime = await timeNode.innerHTML()
+                if (dataTitle) {
+                    ans.set(dataTitle, {
+                        Url: dataUrl,
+                        Title: dataTitle,
+                        Info: dataInfo,
+                        Time: dataTime
+                    })
+                }
+            }
+        }
+    }
+    return JSON.stringify(Object.fromEntries(ans))
+}
+
+
+let getByEvaluate = async function (page: playwright.Page) {
+    return await page.evaluate(() => {
+        let ans = new Map<string, string>();
+        let item = document.querySelector("#newsListContent")
+        if (item == null) {
+            return "{}"
         }
         let childLi = item.getElementsByTagName("li")
         if (childLi) {
@@ -38,29 +91,18 @@ let run = (async ()=>{
                         let titleA = title.getElementsByTagName("a")[0];
                         let infoUrl = titleA.href;
                         let titleValue = titleA.innerHTML;
-                        let titleInfo = info.getAttribute("title");
+                        let titleInfo = info.getAttribute("title") ?? "";
                         let newsTime = timeNode.innerHTML
                         if (titleValue) {
-                            ansInfo.set(titleValue, {
-                                InfoUrl: infoUrl,
-                                TitleValue: titleValue,
-                                TitleInfo: titleInfo,
-                                Time :newsTime
-                            })
-                            return JSON.stringify(ansInfo)
+                            ans.set(infoUrl, titleInfo)
                         }
                     }
                 }
-                return JSON.stringify(ansInfo)
             }
         }
+        return JSON.stringify(Object.fromEntries(ans))
     })
-    console.log(ans)
-    await page.close()
-    await context.close()
-    await browser.close()
-})
+}
 
-run().then(()=>{
-
+run().then(() => {
 });
