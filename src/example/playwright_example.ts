@@ -6,7 +6,12 @@ let run = (async () => {
     const browser = await playwright.chromium.launch(
         {
             headless: false,
-        }
+            logger: {
+                isEnabled: (name, severity) => name === 'browser',
+                log: (name, severity, message, args) => console.log(`${name} ${message}`)
+            }
+        },
+
     );
     // 开启一个页面窗口
     const context = await browser.newContext();
