@@ -11,11 +11,12 @@ let run = (async () => {
     );
     const context = await browser.newContext();
     let jobList = new Array<Promise<any>>();
-    for(let i = 0;i<10;i++){
+    for(let i = 0;i<30;i++){
         let urlNow = string_util.FormatString(baseUrl,i+1)
         jobList.push(GetCjDD(urlNow, context))
     }
     let ansList = await Promise.all(jobList)
+    console.log(ansList)
     await context.close()
     await browser.close()
 })

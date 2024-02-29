@@ -37,6 +37,10 @@ let run = (() => __awaiter(void 0, void 0, void 0, function* () {
     // 开启一个 chromium 进程
     const browser = yield playwright.chromium.launch({
         headless: false,
+        logger: {
+            isEnabled: (name, severity) => name === 'browser',
+            log: (name, severity, message, args) => console.log(`${name} ${message}`)
+        }
     });
     // 开启一个页面窗口
     const context = yield browser.newContext();
@@ -58,13 +62,55 @@ let run = (() => __awaiter(void 0, void 0, void 0, function* () {
     // 当程序崩溃或者手动关闭的页面的时候触发.
     browser.on('disconnected', data => {
     });
-    // 使用查询方法获取数据
-    let ansV2 = yield GetByApiBy$(page);
-    console.log(ansV2);
+    // 使用css查询方法获取数据
+    console.log("use by $ : " + (yield GetByApiBy$(page)));
+    // 使用内部js代码实现
+    console.log("use by evaluate js : " + (yield GetByEvaluate(page)));
+    // 使用local 实现
+    console.log("use by locator : " + (yield GetByApiByLocator(page)));
     yield page.close();
     yield context.close();
     yield browser.close();
 }));
+let GetByEvaluate = function (page) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield page.evaluate(() => {
+            var _a;
+            let ans = new Map();
+            let item = document.querySelector("#newsListContent");
+            if (item == null) {
+                return "{}";
+            }
+            let childLi = item.getElementsByTagName("li");
+            if (childLi) {
+                for (let li of childLi) {
+                    let textDiv = li.getElementsByClassName("text")[0];
+                    if (textDiv) {
+                        let title = textDiv.getElementsByClassName("title")[0];
+                        let info = textDiv.getElementsByClassName("info")[0];
+                        let timeNode = textDiv.getElementsByClassName("time")[0];
+                        if (title && info) {
+                            let titleA = title.getElementsByTagName("a")[0];
+                            let dataUrl = titleA.href;
+                            let dataTitle = titleA.innerHTML;
+                            let dataInfo = (_a = info.getAttribute("title")) !== null && _a !== void 0 ? _a : "";
+                            let dataTime = timeNode.innerHTML;
+                            if (dataTitle) {
+                                ans.set(dataTitle, {
+                                    Url: dataUrl,
+                                    Title: dataTitle,
+                                    Info: dataInfo,
+                                    Time: dataTime
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            return JSON.stringify(Object.fromEntries(ans));
+        });
+    });
+};
 let GetByApiBy$ = function (page) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -104,7 +150,7 @@ let GetByApiBy$ = function (page) {
         return JSON.stringify(Object.fromEntries(ans));
     });
 };
-let getByApiByLocator = function (page) {
+let GetByApiByLocator = function (page) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         let ans = new Map();
@@ -141,40 +187,6 @@ let getByApiByLocator = function (page) {
             }
         }
         return JSON.stringify(Object.fromEntries(ans));
-    });
-};
-let getByEvaluate = function (page) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield page.evaluate(() => {
-            var _a;
-            let ans = new Map();
-            let item = document.querySelector("#newsListContent");
-            if (item == null) {
-                return "{}";
-            }
-            let childLi = item.getElementsByTagName("li");
-            if (childLi) {
-                for (let li of childLi) {
-                    let textDiv = li.getElementsByClassName("text")[0];
-                    if (textDiv) {
-                        let title = textDiv.getElementsByClassName("title")[0];
-                        let info = textDiv.getElementsByClassName("info")[0];
-                        let timeNode = textDiv.getElementsByClassName("time")[0];
-                        if (title && info) {
-                            let titleA = title.getElementsByTagName("a")[0];
-                            let infoUrl = titleA.href;
-                            let titleValue = titleA.innerHTML;
-                            let titleInfo = (_a = info.getAttribute("title")) !== null && _a !== void 0 ? _a : "";
-                            let newsTime = timeNode.innerHTML;
-                            if (titleValue) {
-                                ans.set(infoUrl, titleInfo);
-                            }
-                        }
-                    }
-                }
-            }
-            return JSON.stringify(Object.fromEntries(ans));
-        });
     });
 };
 run().then(() => {
