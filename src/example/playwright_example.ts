@@ -43,6 +43,43 @@ let run = (async () => {
     await browser.close()
 })
 
+let GetByEvaluate = async function (page: playwright.Page) {
+    return await page.evaluate(() => {
+        let ans = new Map<string, any>();
+        let item = document.querySelector("#newsListContent")
+        if (item == null) {
+            return "{}"
+        }
+        let childLi = item.getElementsByTagName("li")
+        if (childLi) {
+            for (let li of childLi) {
+                let textDiv = li.getElementsByClassName("text")[0];
+                if (textDiv) {
+                    let title = textDiv.getElementsByClassName("title")[0];
+                    let info = textDiv.getElementsByClassName("info")[0];
+                    let timeNode = textDiv.getElementsByClassName("time")[0];
+                    if (title && info) {
+                        let titleA = title.getElementsByTagName("a")[0];
+                        let dataUrl = titleA.href;
+                        let dataTitle = titleA.innerHTML;
+                        let dataInfo = info.getAttribute("title") ?? "";
+                        let dataTime = timeNode.innerHTML
+                        if (dataTitle) {
+                            ans.set(dataTitle, {
+                                Url: dataUrl,
+                                Title: dataTitle,
+                                Info: dataInfo,
+                                Time: dataTime
+                            })
+                        }
+                    }
+                }
+            }
+        }
+        return JSON.stringify(Object.fromEntries(ans))
+    })
+}
+
 let GetByApiBy$ = async  function (page: playwright.Page){
     // 这个会阻止 js的垃圾回收处理.
     let ans = new Map<string, any>();
@@ -116,44 +153,6 @@ let GetByApiByLocator = async function (page: playwright.Page) {
         }
     }
     return JSON.stringify(Object.fromEntries(ans))
-}
-
-
-let GetByEvaluate = async function (page: playwright.Page) {
-    return await page.evaluate(() => {
-        let ans = new Map<string, any>();
-        let item = document.querySelector("#newsListContent")
-        if (item == null) {
-            return "{}"
-        }
-        let childLi = item.getElementsByTagName("li")
-        if (childLi) {
-            for (let li of childLi) {
-                let textDiv = li.getElementsByClassName("text")[0];
-                if (textDiv) {
-                    let title = textDiv.getElementsByClassName("title")[0];
-                    let info = textDiv.getElementsByClassName("info")[0];
-                    let timeNode = textDiv.getElementsByClassName("time")[0];
-                    if (title && info) {
-                        let titleA = title.getElementsByTagName("a")[0];
-                        let dataUrl = titleA.href;
-                        let dataTitle = titleA.innerHTML;
-                        let dataInfo = info.getAttribute("title") ?? "";
-                        let dataTime = timeNode.innerHTML
-                        if (dataTitle) {
-                            ans.set(dataTitle, {
-                                Url: dataUrl,
-                                Title: dataTitle,
-                                Info: dataInfo,
-                                Time: dataTime
-                            })
-                        }
-                    }
-                }
-            }
-        }
-        return JSON.stringify(Object.fromEntries(ans))
-    })
 }
 
 run().then(() => {
