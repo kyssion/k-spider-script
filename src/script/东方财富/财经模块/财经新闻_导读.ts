@@ -72,9 +72,4 @@ let GetByEvaluate = async function (page: playwright.Page) {
     })
 }
 
-
-let start = Date.now()
-
-run().then(() => {
-    console.log(Date.now()-start)
-});
+run().then(() => {});
