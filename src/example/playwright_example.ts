@@ -32,9 +32,12 @@ let run = (async () => {
     browser.on('disconnected', data => {
 
     });
-    // 使用查询方法获取数据
-    let ansV2 = await GetByApiBy$(page);
-    console.log(ansV2)
+    // 使用css查询方法获取数据
+   console.log("use by $ : "+await GetByApiBy$(page));
+   // 使用内部js代码实现
+    console.log("use by evaluate js : "+await GetByEvaluate(page));
+    // 使用local 实现
+    console.log("use by locator : "+await GetByApiByLocator(page));
     await page.close()
     await context.close()
     await browser.close()
@@ -78,7 +81,7 @@ let GetByApiBy$ = async  function (page: playwright.Page){
     return JSON.stringify(Object.fromEntries(ans))
 }
 
-let getByApiByLocator = async function (page: playwright.Page) {
+let GetByApiByLocator = async function (page: playwright.Page) {
     let ans = new Map<string, any>();
     let needListItem = page.locator("css=#newsListContent");
     if (await needListItem.count() == 0) {
@@ -116,9 +119,9 @@ let getByApiByLocator = async function (page: playwright.Page) {
 }
 
 
-let getByEvaluate = async function (page: playwright.Page) {
+let GetByEvaluate = async function (page: playwright.Page) {
     return await page.evaluate(() => {
-        let ans = new Map<string, string>();
+        let ans = new Map<string, any>();
         let item = document.querySelector("#newsListContent")
         if (item == null) {
             return "{}"
@@ -133,12 +136,17 @@ let getByEvaluate = async function (page: playwright.Page) {
                     let timeNode = textDiv.getElementsByClassName("time")[0];
                     if (title && info) {
                         let titleA = title.getElementsByTagName("a")[0];
-                        let infoUrl = titleA.href;
-                        let titleValue = titleA.innerHTML;
-                        let titleInfo = info.getAttribute("title") ?? "";
-                        let newsTime = timeNode.innerHTML
-                        if (titleValue) {
-                            ans.set(infoUrl, titleInfo)
+                        let dataUrl = titleA.href;
+                        let dataTitle = titleA.innerHTML;
+                        let dataInfo = info.getAttribute("title") ?? "";
+                        let dataTime = timeNode.innerHTML
+                        if (dataTitle) {
+                            ans.set(dataTitle, {
+                                Url: dataUrl,
+                                Title: dataTitle,
+                                Info: dataInfo,
+                                Time: dataTime
+                            })
                         }
                     }
                 }
