@@ -1,8 +1,32 @@
 import * as playwright from "playwright";
 import {consola} from "consola"
+import * as string_util from "../../../util/string_util";
 // 获取 列表页面 newsListContent 中的信息
-let GetNewsListContentDataInfo = async  function (url:string , context:playwright.BrowserContext){
-    console.log("start url : "+url)
+
+let GetContextDataInfo = async function (baseUrl: string, pageNum: number, browser: playwright.Browser | null) {
+    let isUseOtherBrowser = true;
+    if (!browser) {
+        browser = await playwright.chromium.launch(
+            {
+                headless: true,
+            }
+        );
+        isUseOtherBrowser = false;
+    }
+    const context = await browser.newContext();
+    let jobList = new Array<Promise<any>>();
+    for (let i = 0; i < pageNum; i++) {
+        let urlNow = string_util.FormatString(baseUrl, i + 1)
+        jobList.push(GetNewsListContentDataInfo(urlNow, context))
+    }
+    let ansList = await Promise.all(jobList)
+    await context.close()
+    if (!isUseOtherBrowser) {
+        await browser.close()
+    }
+}
+
+let GetNewsListContentDataInfo = async function (url: string, context: playwright.BrowserContext) {
     // 开启一个详细的页面
     const page = await context.newPage();
     await Promise.all([
@@ -10,8 +34,8 @@ let GetNewsListContentDataInfo = async  function (url:string , context:playwrigh
         page.waitForLoadState('load')
     ])
     // 使用local 实现
-    let ans =  await page.evaluate(() => {
-        let ans=new Array<any>();
+    let ans = await page.evaluate(() => {
+        let ans = new Array<any>();
         let item = document.querySelector("#newsListContent")
         if (item == null) {
             return ans
@@ -45,7 +69,7 @@ let GetNewsListContentDataInfo = async  function (url:string , context:playwrigh
         return ans
     })
     await page.close()
-    consola.info("get url data succsee : "+url +" value : "+JSON.stringify(ans))
+    consola.info("get url data succsee : " + url + " value : " + JSON.stringify(ans))
     return ans
 }
-export {GetNewsListContentDataInfo}
+export {GetNewsListContentDataInfo, GetContextDataInfo}
