@@ -72,4 +72,7 @@ let GetNewsListContentDataInfo = async function (url: string, context: playwrigh
     consola.info("get url data succsee : " + url + " value : " + JSON.stringify(ans))
     return ans
 }
+
+// 推流测试代码 https://finance.eastmoney.com/a/202403012999948393.html
+
 export {GetNewsListContentDataInfo, GetContextDataInfo}
