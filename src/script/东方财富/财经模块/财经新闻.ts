@@ -127,9 +127,10 @@ let  run= async function (){
             headless: true,
         }
     );
-    for (let optime of defaultOption){
-       await GetContextDataInfo(optime.Url,optime.PageNum,browser)
-    }
+    await GetContextDataInfo(defaultOption[0].Url,3,browser)
+    // for (let optime of defaultOption){
+    //    await GetContextDataInfo(optime.Url,optime.PageNum,browser)
+    // }
     await browser.close()
 }
 

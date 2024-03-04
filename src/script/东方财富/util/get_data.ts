@@ -3,6 +3,8 @@ import {consola} from "consola"
 import * as string_util from "../../../util/string_util";
 // 获取 列表页面 newsListContent 中的信息
 
+
+
 let GetContextDataInfo = async function (baseUrl: string, pageNum: number, browser: playwright.Browser | null) {
     let isUseOtherBrowser = true;
     if (!browser) {
@@ -72,4 +74,7 @@ let GetNewsListContentDataInfo = async function (url: string, context: playwrigh
     consola.info("get url data succsee : " + url + " value : " + JSON.stringify(ans))
     return ans
 }
+
+// 抓取页面信息 : https://finance.eastmoney.com/a/202403012998758422.html
+
 export {GetNewsListContentDataInfo, GetContextDataInfo}
