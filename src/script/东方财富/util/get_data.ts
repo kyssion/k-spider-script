@@ -75,6 +75,5 @@ let GetNewsListContentDataInfo = async function (url: string, context: playwrigh
     return ans
 }
 
-// 抓取页面信息 : https://finance.eastmoney.com/a/202403012998758422.html
-
+// 推流测试代码 https://finance.eastmoney.com/a/202403012999948393.html
 export {GetNewsListContentDataInfo, GetContextDataInfo}
