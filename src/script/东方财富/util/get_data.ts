@@ -118,12 +118,12 @@ class DFCFDetailUtil{
         if (await titleInfoNode.count()==0){
             console.log("ddd")
         }
-        let infosNodeChild = needDetailInfo.locator("css=div.infos>*")
+        let infosNodeChild = needDetailInfo.locator("css=div.infos>div.item")
         if (await infosNodeChild.count()==0){
             console.log("ccc")
         }
         for (let item of await infosNodeChild.all()){
-            console.log(await item.innerHTML())
+            console.log(await item.innerText())
         }
 
 
