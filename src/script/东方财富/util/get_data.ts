@@ -107,24 +107,6 @@ class DFCFDetailUtil{
         ])
 
 
-        // 实际运方法
-
-        // 1. 获取正文信息
-        let needDetailInfo = page.locator("css=.contentwrap").nth(0);
-        if (await needDetailInfo.count()==0){
-            console.log("fff")
-        }
-        let titleInfoNode = needDetailInfo.locator("css=.title").nth(0)
-        if (await titleInfoNode.count()==0){
-            console.log("ddd")
-        }
-        let infosNodeChild = needDetailInfo.locator("css=div.infos>div.item")
-        if (await infosNodeChild.count()==0){
-            console.log("ccc")
-        }
-        for (let item of await infosNodeChild.all()){
-            console.log(await item.innerText())
-        }
 
 
         await page.close()
@@ -134,6 +116,36 @@ class DFCFDetailUtil{
         }
         return
     }
+
+    public async getContextData(page : playwright.Page){
+        let ansData = new DFCJContextDataModel();
+        // 1. 获取正文信息
+        let needDetailInfo = page.locator("css=.contentwrap").nth(0);
+        if (await needDetailInfo.count()==0){
+            return null
+        }
+        ansData.title =await needDetailInfo.locator("css=.title").nth(0).innerText();
+        let infosNodeChild = needDetailInfo.locator("css=div.infos>div.item")
+        if (await infosNodeChild.count()==0){
+            return null
+        }
+        ansData.newDate = await infosNodeChild.nth(0).innerText();
+        let newsFrom = await infosNodeChild.nth(1).innerText();
+        ansData.newsFrom = newsFrom.split("：")[1]
+
+
+
+    }
+}
+
+
+class DFCJContextDataModel{
+    public title!:string;
+    public abstract!:string;
+    public newDate!:string;
+    public newsFrom!:string;
+    public dataContext!:string;
+
 }
 
 function TestPPP(){
@@ -164,5 +176,6 @@ Test().then(()=>{
 
 })
 
+// https://finance.eastmoney.com/a/202401172964192889.html
 // 推流测试代码 https://finance.eastmoney.com/a/202403012999948393.html
 export {DFCFListUtil,DFCFDetailUtil}
