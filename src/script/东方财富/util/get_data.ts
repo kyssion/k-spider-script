@@ -176,6 +176,8 @@ Test().then(()=>{
 
 })
 
+// 获取m3u8 https://h5.lvb.eastmoney.com/lvbcooperation/api/av/GetAVInfo?reqtype=server&channel_id=4390990&callback=__jp0
+
 // https://finance.eastmoney.com/a/202401172964192889.html
 // 推流测试代码 https://finance.eastmoney.com/a/202403012999948393.html
 export {DFCFListUtil,DFCFDetailUtil}
