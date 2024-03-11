@@ -119,6 +119,10 @@ class DFCFDetailUtil{
 
     public async getContextData(page : playwright.Page){
         let ansData = new DFCJContextDataModel();
+
+        // 设置m3u8 监听
+
+
         // 1. 获取正文信息
         let needDetailInfo = page.locator("css=.contentwrap").nth(0);
         if (await needDetailInfo.count()==0){
