@@ -41,15 +41,15 @@ video_url=videos[0]['baseUrl'] #视频地址
 audios=json_data['data']['dash']['audio']
 audio_url=audios[0]['baseUrl']
 
-resp1=requests.get(url='https://cn-jlcc-cu-03-05.bilivideo.com/upgcxcode/02/85/1449708502/1449708502-1-100047.m4s?e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M=&uipk=5&nbs=1&deadline=1710256867&gen=playurlv2&os=bcache&oi=1929102422&trid=00001d39fdf4659943fe946bbec409ed3673u&mid=0&platform=pc&upsig=52cc3f1906acec1b2aab76bf4e235316&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&cdnid=3274&bvc=vod&nettype=0&orderid=0,3&buvid=&build=0&f=u_0_0&agrr=0&bw=53931&logo=80000000',headers=header)
+resp1=requests.get(url='https://cn-hncs-cu-01-09.bilivideo.com/upgcxcode/02/85/1449708502/1449708502-1-100047.m4s?e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M=&uipk=5&nbs=1&deadline=1710342503&gen=playurlv2&os=bcache&oi=1929102435&trid=0000c36eb1590fd8435eac04c1b71935c944u&mid=0&platform=pc&upsig=a9c7ee516e7f146cea6f58e660821b9f&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&cdnid=34209&bvc=vod&nettype=0&orderid=0,3&buvid=&build=0&f=u_0_0&agrr=0&bw=53931&logo=80000000',headers=header)
 
 with open('test.mp4',mode='wb') as f:
     f.write(resp1.content)
 
-resp2=requests.get(url=audio_url,headers=header)
-
-with open('test.mp3',mode='wb') as f:
-    f.write(resp2.content)
+# resp2=requests.get(url=audio_url,headers=header)
+#
+# with open('test.mp3',mode='wb') as f:
+#     f.write(resp2.content)
 
 # print("爬取完成")
 # 现在需要将视频和音频合并 需要模块ffmpeg 可以在网上看教程
