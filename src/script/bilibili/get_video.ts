@@ -16,6 +16,7 @@ async function run (){
                 "Referer":"https://www.bilibili.com/",
             }
         })
+        // bilibili的视频是在 这里的方法存储的url地址
         let re = new RegExp("window.__playinfo__=(.*?)</script>");
         // console.log(resp.data)
         let data = re.exec(resp.data);
@@ -23,6 +24,7 @@ async function run (){
         dataStr = dataStr.substring(20);
         dataStr = dataStr.substring(0,dataStr.length-9)
         let z = JSON.parse(dataStr)
+        // 获取对应的字段信息
         let videoUrl = z.data.dash.video[0].baseUrl
         let audioUrl = z.data.dash.audio[0].baseUrl
 
