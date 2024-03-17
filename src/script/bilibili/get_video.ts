@@ -10,7 +10,8 @@ let header ={
 
 async function run (){
     try {
-        let resp = await axios.get("https://www.bilibili.com/video/BV1Tz421X7EX/",{
+        let resp = await fetch("https://www.bilibili.com/video/BV1Tz421X7EX/", {
+            method:"GET",
             headers:{
                 "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.76",
                 "Referer":"https://www.bilibili.com/",
@@ -19,7 +20,7 @@ async function run (){
         // bilibili的视频是在 这里的方法存储的url地址
         let re = new RegExp("window.__playinfo__=(.*?)</script>");
         // console.log(resp.data)
-        let data = re.exec(resp.data);
+        let data = re.exec(await resp.text());
         let dataStr = data?.at(0)??"";
         dataStr = dataStr.substring(20);
         dataStr = dataStr.substring(0,dataStr.length-9)
