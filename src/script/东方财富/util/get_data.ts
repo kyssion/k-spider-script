@@ -6,10 +6,35 @@ import fs from "fs/promises"
 
 // 获取 列表页面 newsListContent 中的信息
 
+class DataContextInfo {
+    public title!: string;
+    public abstract!: string;
+    public newsDate!: string;
+    public newsFrom!: string;
+    public dataContext!: DataContextDetailInfo[];
+    public dataContextAll!: string
+}
+
+class DataContextDetailInfo {
+    public tagType!: string
+    public value!: string
+    public valueType!: string
+    public baseUrl!: string
+    public webUrl!: string
+}
+
+class DataListInfo{
+    public url!: string
+    public title!: string
+    public info!: string
+    public time!: string
+}
+
 
 // 东方财富 列表页抓取方法
 class DFCFListUtil {
-    public async GetContextDataInfo(baseUrl: string, pageNum: number, browser: playwright.Browser | null) {
+    // 抓取一个网页中中的所有的数据 分下标榨取数据
+    public async GetListDataInfo(baseUrl: string, pageNum: number, browser: playwright.Browser | null): Promise<DataListInfo[][]> {
         let isUseOtherBrowser = true;
         if (!browser) {
             browser = await playwright.chromium.launch(
@@ -20,19 +45,28 @@ class DFCFListUtil {
             isUseOtherBrowser = false;
         }
         const context = await browser.newContext();
-        let jobList = new Array<Promise<any>>();
-        for (let i = 0; i < pageNum; i++) {
-            let urlNow = string_util.FormatString(baseUrl, i + 1)
-            jobList.push(this.GetNewsListContentDataInfo(urlNow, context))
-        }
-        let ansList = await Promise.all(jobList)
-        await context.close()
+        let ansList = await this.GetListDataInfoWithPlaywright(baseUrl,pageNum,context)
         if (!isUseOtherBrowser) {
             await browser.close()
         }
+        return ansList
     }
 
-    public async GetNewsListContentDataInfo(url: string, context: playwright.BrowserContext) {
+    // context 维度抓取, 并且拆分成下标页面
+    public async GetListDataInfoWithPlaywright(baseUrl:string , pageNum:number,context:playwright.BrowserContext){
+        let jobList = new Array<Promise<DataListInfo[]>>();
+        for (let i = 0; i < pageNum; i++) {
+            let urlNow = string_util.FormatString(baseUrl, i + 1)
+            jobList.push(this.getListContentDataInfo(urlNow, context))
+        }
+        let ansList = await Promise.all(jobList)
+        await context.close()
+        return ansList
+    }
+
+
+    // 抓取一个列表页面详细数据
+    private async getListContentDataInfo(url: string, context: playwright.BrowserContext) : Promise<DataListInfo[]> {
         // 开启一个列表页面
         const page = await context.newPage();
         await Promise.all([
@@ -40,7 +74,7 @@ class DFCFListUtil {
             page.waitForLoadState('load')
         ])
         // 使用local 实现
-        let ans = await page.evaluate(() => {
+        let pageInfos = await page.evaluate(() => {
             let ans = new Array<any>();
             let item = document.querySelector("#newsListContent")
             if (item == null) {
@@ -62,10 +96,10 @@ class DFCFListUtil {
                             let dataTime = timeNode.innerHTML
                             if (dataTitle) {
                                 ans.push({
-                                    Url: dataUrl,
-                                    Title: dataTitle,
-                                    Info: dataInfo,
-                                    Time: dataTime
+                                    url: dataUrl,
+                                    title: dataTitle,
+                                    info: dataInfo,
+                                    time: dataTime
                                 })
                             }
                         }
@@ -74,52 +108,24 @@ class DFCFListUtil {
             }
             return ans
         })
+        let ans = new Array<DataListInfo>();
+        for (let item of pageInfos){
+            let newItem = new DataListInfo()
+            newItem.info = item.info
+            newItem.title = item.title
+            newItem.url = item.url
+            newItem.time= item.time
+            ans.push(newItem)
+        }
         await page.close()
         consola.info("get url data succsee : " + url + " value : " + JSON.stringify(ans))
         return ans
     }
 }
-
-async function Test() {
-    // 开启一个 chromium 进程
-    const browser = await playwright.chromium.launch(
-        {
-            headless: false,
-            logger: {
-                isEnabled: (name, severity) => name === 'browser',
-                log: (name, severity, message, args) => console.log(`${name} ${message}`)
-            }
-        },
-    );
-    let item = new DFCFDetailUtil()
-    await item.GetContextDataInfo("https://finance.eastmoney.com/a/202403173014477932.html", browser, true)
-    await browser.close()
-}
-
-Test().then(() => {
-
-})
-
-class DFCJContextDataModel {
-    public title!: string;
-    public abstract!: string;
-    public newsDate!: string;
-    public newsFrom!: string;
-    public dataContext!: DataContextInfo[];
-    public dataContextAll!: string
-}
-
-class DataContextInfo {
-    public tagType!: string
-    public value!: string
-    public valueType!: string
-    public baseUrl!: string
-    public webUrl!: string
-}
-
 // 东方财富详情页面抓取方法
-class DFCFDetailUtil {
-    public async GetContextDataInfo(url: string, browser: playwright.Browser | null, useConsole: boolean) {
+class DFCFContextUtil {
+    // 使用进程维度爬取
+    public async GetContextInfo(url: string, browser: playwright.Browser | null, useConsole: boolean) :Promise<DataContextInfo|null>{
         let isUseOtherBrowser = true;
         if (!browser) {
             browser = await playwright.chromium.launch(
@@ -130,6 +136,19 @@ class DFCFDetailUtil {
             isUseOtherBrowser = false;
         }
         const context = await browser.newContext();
+        let ans = this.GetContextInfoWithPlaywrightContext(url,context,useConsole)
+        if (!isUseOtherBrowser) {
+            await browser.close()
+        }
+        return ans
+    }
+
+    // 使用context 维度优化
+    public async GetContextInfoWithPlaywrightContext(url: string , context:playwright.BrowserContext,useConsole: boolean):Promise<DataContextInfo|null>{
+        if (context==null){
+            console.log("context not find")
+            return null
+        }
         if (useConsole) {
             // 开启收集console 信息 , 方便进行debug
             context.on('console', async msg => {
@@ -141,18 +160,15 @@ class DFCFDetailUtil {
         }
         // 开启一个详细的页面
         const page = await context.newPage();
-        let ans = await this.getContextData(url, page)
+        let ans = await this.getContextInfoData(url, page)
         console.log(JSON.stringify(ans))
         await page.close()
-        await context.close()
-        if (!isUseOtherBrowser) {
-            await browser.close()
-        }
-        return
+        return ans
     }
 
-    public async getContextData(url: string, page: playwright.Page) {
-        let ansData = new DFCJContextDataModel();
+    // 页面详情解析
+    private async getContextInfoData(url: string, page: playwright.Page):Promise<DataContextInfo|null> {
+        let ansData = new DataContextInfo();
 
         // 设置m3u8 监听 -- 暂时不做
         let urlToImageBufferMap = new Map<String, Buffer>()
@@ -184,9 +200,12 @@ class DFCFDetailUtil {
         ansData.newsFrom = newsFrom.split("：")[1]
 
         let zwInfo = needDetailInfo.locator("css=.contentbox").locator("css=.zwinfos")
-        ansData.abstract = await zwInfo.locator("css=.abstract").locator("css=.txt").nth(0).innerText()
+        let abstractNode = zwInfo.locator("css=.abstract")
+        if (await abstractNode.count()!=0){
+            ansData.abstract = await abstractNode.locator("css=.txt").nth(0).innerText()
+        }
         let textInfo = await zwInfo.locator("css=.txtinfos > *").all()
-        ansData.dataContext = new Array<DataContextInfo>()
+        ansData.dataContext = new Array<DataContextDetailInfo>()
         for (let a = 0; a < textInfo.length; a++) {
             let textItemInfo = textInfo[a]
             let nodeType = await textItemInfo.evaluate(nodeItem => nodeItem.tagName)
@@ -194,7 +213,7 @@ class DFCFDetailUtil {
                 console.error("node type not find " + nodeType)
                 continue
             }
-            let valueItem = new DataContextInfo()
+            let valueItem = new DataContextDetailInfo()
             switch (nodeTag.TagName[nodeType as keyof typeof nodeTag.TagName]) {
                 case nodeTag.TagName.DIV:
                     break;
@@ -244,8 +263,5 @@ class DFCFDetailUtil {
     }
 }
 
-// 获取m3u8 https://h5.lvb.eastmoney.com/lvbcooperation/api/av/GetAVInfo?reqtype=server&channel_id=4390990&callback=__jp0
 
-// https://finance.eastmoney.com/a/202401172964192889.html
-// 推流测试代码 https://finance.eastmoney.com/a/202403012999948393.html
-export {DFCFListUtil, DFCFDetailUtil}
+export {DFCFListUtil, DFCFContextUtil}

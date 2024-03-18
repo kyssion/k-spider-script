@@ -1,4 +1,4 @@
-import {GetContextDataInfo} from "../util/get_data";
+import * as get_data from "../util/get_data";
 import * as playwright from "playwright";
 import * as Url from "url";
 
@@ -127,10 +127,8 @@ let  run= async function (){
             headless: true,
         }
     );
-    await GetContextDataInfo(defaultOption[0].Url,3,browser)
-    // for (let optime of defaultOption){
-    //    await GetContextDataInfo(optime.Url,optime.PageNum,browser)
-    // }
+
+    let listUtil = new get_data.DFCFListUtil()
     await browser.close()
 }
 
