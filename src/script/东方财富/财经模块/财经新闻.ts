@@ -129,6 +129,9 @@ let  run= async function (){
     );
 
     let listUtil = new get_data.DFCFListUtil()
+    for (let urlItem of defaultOption){
+        let ans = listUtil.GetListDataInfo(urlItem.Url,urlItem.PageNum,null)
+    }
     await browser.close()
 }
 

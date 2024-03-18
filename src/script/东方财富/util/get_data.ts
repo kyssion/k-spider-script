@@ -1,7 +1,7 @@
 import * as playwright from "playwright";
 import {consola} from "consola"
 import * as string_util from "../../../util/string_util";
-import * as nodeTag from "../../../util/Node"
+import * as nodeTag from "../../../util/node_util"
 import fs from "fs/promises"
 
 // 获取 列表页面 newsListContent 中的信息
