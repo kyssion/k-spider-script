@@ -28,7 +28,6 @@ async function run (){
         // 获取对应的字段信息
         let videoUrl = z.data.dash.video[0].baseUrl
         let audioUrl = z.data.dash.audio[0].baseUrl
-
         console.log(videoUrl)
         let respValue = await fetch(videoUrl, {
             method:"GET",
@@ -47,9 +46,6 @@ async function run (){
         })
         // 这个地方是关键 , 需要用二进制数据流
         await fs.writeFile("./demo.mp3",Buffer.from(await respValue.arrayBuffer()))
-
-
-
     }catch (error){
         console.error(error)
     }
