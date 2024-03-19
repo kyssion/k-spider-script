@@ -4,6 +4,7 @@ import * as string_util from "../../../util/string_util";
 import * as nodeTag from "../../../util/node_util"
 import fs from "fs/promises"
 import exp from "node:constants";
+import {inflateRaw} from "node:zlib";
 
 // 获取 列表页面 newsListContent 中的信息
 
@@ -14,6 +15,7 @@ export class DataContextInfo {
     public newsFrom!: string;
     public dataContext!: DataContextDetailInfo[];
     public dataContextAll!: string
+    public fromUrl!:string
 }
 
 export class DataContextDetailInfo {
@@ -61,8 +63,7 @@ export class DFCFListUtil {
             let urlNow = string_util.FormatString(baseUrl, i + 1)
             jobList.push(this.getListContentDataInfo(urlNow, context))
         }
-        let ansList = await Promise.all(jobList)
-        return ansList
+        return await Promise.all(jobList)
     }
 
 
@@ -119,7 +120,6 @@ export class DFCFListUtil {
             ans.push(newItem)
         }
         await page.close()
-        consola.info("get url data succsee : " + url + " value : " + JSON.stringify(ans))
         return ans
     }
 }
@@ -137,7 +137,7 @@ export class DFCFContextUtil {
             isUseOtherBrowser = false;
         }
         const context = await browser.newContext();
-        let ans = this.GetContextInfoWithPlaywrightContext(url,context,useConsole)
+        let ans = await this.GetContextInfoWithPlaywrightContext(url,context,useConsole)
         await context.close()
         if (!isUseOtherBrowser) {
             await browser.close()
@@ -147,25 +147,30 @@ export class DFCFContextUtil {
 
     // 使用context 维度优化
     public async GetContextInfoWithPlaywrightContext(url: string , context:playwright.BrowserContext,useConsole: boolean):Promise<DataContextInfo|null>{
-        if (context==null){
-            console.log("context not find")
+        try {
+            if (context==null){
+                console.log("context not find")
+                return null
+            }
+            if (useConsole) {
+                // 开启收集console 信息 , 方便进行debug
+                context.on('console', async msg => {
+                    const values = [];
+                    for (const arg of msg.args())
+                        values.push(await arg.jsonValue());
+                    console.log(...values);
+                });
+            }
+            // 开启一个详细的页面
+            const page = await context.newPage();
+            page.setDefaultTimeout(20000)
+            let ans = await this.getContextInfoData(url, page)
+            await page.close()
+            return ans
+        }catch (error){
+            console.error("page err "+error+"url :"+url)
             return null
         }
-        if (useConsole) {
-            // 开启收集console 信息 , 方便进行debug
-            context.on('console', async msg => {
-                const values = [];
-                for (const arg of msg.args())
-                    values.push(await arg.jsonValue());
-                console.log(...values);
-            });
-        }
-        // 开启一个详细的页面
-        const page = await context.newPage();
-        let ans = await this.getContextInfoData(url, page)
-        console.log(JSON.stringify(ans))
-        await page.close()
-        return ans
     }
 
     // 页面详情解析
@@ -175,12 +180,17 @@ export class DFCFContextUtil {
         // 设置m3u8 监听 -- 暂时不做
         let urlToImageBufferMap = new Map<String, Buffer>()
         // 设置监听
-        await page.route('**/*.{png,jpg,jpeg}', async route => {
+        await page.route('**/*', async route => {
             // Fetch original response.
-            let url = route.request().url()
-            const response = await route.fetch();
-            urlToImageBufferMap.set(url, await response.body())
-            return route.continue()
+            let reg = /\.(html)$/;
+            if (reg.test(route.request().url())){
+                let url = route.request().url()
+                const response = await route.fetch();
+                urlToImageBufferMap.set(url, await response.body())
+                return route.continue()
+            }else{
+                return route.abort()
+            }
         })
         await Promise.all([
             page.goto(url),
@@ -197,6 +207,7 @@ export class DFCFContextUtil {
         if (await infosNodeChild.count() == 0) {
             return null
         }
+        ansData.fromUrl = url
         ansData.newsDate = await infosNodeChild.nth(0).innerText();
         let newsFrom = await infosNodeChild.nth(1).innerText();
         ansData.newsFrom = newsFrom.split("：")[1]
@@ -220,7 +231,11 @@ export class DFCFContextUtil {
                 case nodeTag.TagName.DIV:
                     break;
                 case nodeTag.TagName.CENTER:
-                    let url = await textItemInfo.locator("css=img").nth(0).getAttribute("src") ?? "";
+                    let imgItem =  textItemInfo.locator("css=img")
+                    if(await imgItem.count()==0){
+                        continue
+                    }
+                    let url = await imgItem.nth(0).getAttribute("src") ?? "";
                     valueItem.tagType = nodeType
                     valueItem.valueType = "IMG"
                     valueItem.webUrl = url
@@ -231,13 +246,23 @@ export class DFCFContextUtil {
                     if (className !=null){
                         continue
                     }
-                    valueItem.tagType = nodeType
-                    valueItem.valueType = "TEXT"
-                    valueItem.value = await textInfo[a].innerText()
-                    valueItem.value =  valueItem.value.replace(/\s*/g,"")
-                    if (!valueItem.value.startsWith("主力资金加仓名单实时更新")){
+                    let pImgItem =  textItemInfo.locator("css=img")
+                    if(await pImgItem.count()!=0){
+                        let url = await pImgItem.nth(0).getAttribute("src") ?? "";
+                        valueItem.tagType = nodeType
+                        valueItem.valueType = "IMG"
+                        valueItem.webUrl = url
                         ansData.dataContext.push(valueItem)
+                    }else{
+                        valueItem.tagType = nodeType
+                        valueItem.valueType = "TEXT"
+                        valueItem.value = await textInfo[a].innerText()
+                        valueItem.value =  valueItem.value.replace(/\s*/g,"")
+                        if (!valueItem.value.startsWith("主力资金加仓名单实时更新")){
+                            ansData.dataContext.push(valueItem)
+                        }
                     }
+
                     break;
                 default:
                     break;

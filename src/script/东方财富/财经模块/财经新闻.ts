@@ -3,7 +3,7 @@ import * as playwright from "playwright";
 import * as Url from "url";
 
 
-const defaultPageNum = 2;
+const defaultPageNum = 8;
 
 class CjOption {
     public ModuleName:string
@@ -124,7 +124,7 @@ let defaultOption:CjOption[] = [
 let  run= async function (){
     let browser = await playwright.chromium.launch(
         {
-            headless: false,
+            headless: true,
         }
     );
     const context = await browser.newContext();
@@ -137,14 +137,14 @@ let  run= async function (){
         for(let datalistInfos of ans){
             let jobList = new Array<Promise<get_data.DataContextInfo|null>>();
             for (let dataListInfo of datalistInfos){
-                jobList.push(contextUtil.GetContextInfoWithPlaywrightContext(dataListInfo.url,context,true))
+                jobList.push(contextUtil.GetContextInfoWithPlaywrightContext(dataListInfo.url,context,false))
             }
             let contextDetailAll =  await Promise.all(jobList)
             for (let itemInfo of contextDetailAll){
                 if (itemInfo == null){
                     continue
                 }
-                console.log(JSON.stringify(itemInfo))
+                console.log("success :"+itemInfo.fromUrl)
             }
         }
     }

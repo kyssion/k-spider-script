@@ -18,7 +18,7 @@ async function TestContextInfo() {
         },
     );
     let item = new get_date.DFCFContextUtil()
-    await item.GetContextInfo("https://finance.eastmoney.com/a/202403183015473340.html", browser, true)
+    await item.GetContextInfo("https://finance.eastmoney.com/a/202403193016926098.html", browser, true)
     await browser.close()
 }
 
@@ -46,6 +46,6 @@ async function TestListfo() {
 }
 
 
-//TestContextInfo().then()
-TestListfo().then()
+TestContextInfo().then()
+// TestListfo().then()
 
