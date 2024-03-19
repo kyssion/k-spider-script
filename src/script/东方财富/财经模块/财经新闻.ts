@@ -3,7 +3,7 @@ import * as playwright from "playwright";
 import * as Url from "url";
 
 
-const defaultPageNum = 10;
+const defaultPageNum = 2;
 
 class CjOption {
     public ModuleName:string
@@ -124,14 +124,31 @@ let defaultOption:CjOption[] = [
 let  run= async function (){
     let browser = await playwright.chromium.launch(
         {
-            headless: true,
+            headless: false,
         }
     );
+    const context = await browser.newContext();
 
+    // context 维度拉取所有的列表
     let listUtil = new get_data.DFCFListUtil()
+    let contextUtil = new get_data.DFCFContextUtil()
     for (let urlItem of defaultOption){
-        let ans = listUtil.GetListDataInfo(urlItem.Url,urlItem.PageNum,null)
+        let ans =await listUtil.GetListDataInfoWithPlaywright(urlItem.Url,urlItem.PageNum,context)
+        for(let datalistInfos of ans){
+            let jobList = new Array<Promise<get_data.DataContextInfo|null>>();
+            for (let dataListInfo of datalistInfos){
+                jobList.push(contextUtil.GetContextInfoWithPlaywrightContext(dataListInfo.url,context,true))
+            }
+            let contextDetailAll =  await Promise.all(jobList)
+            for (let itemInfo of contextDetailAll){
+                if (itemInfo == null){
+                    continue
+                }
+                console.log(JSON.stringify(itemInfo))
+            }
+        }
     }
+
     await browser.close()
 }
 

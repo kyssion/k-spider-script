@@ -3,10 +3,11 @@ import {consola} from "consola"
 import * as string_util from "../../../util/string_util";
 import * as nodeTag from "../../../util/node_util"
 import fs from "fs/promises"
+import exp from "node:constants";
 
 // 获取 列表页面 newsListContent 中的信息
 
-class DataContextInfo {
+export class DataContextInfo {
     public title!: string;
     public abstract!: string;
     public newsDate!: string;
@@ -15,7 +16,7 @@ class DataContextInfo {
     public dataContextAll!: string
 }
 
-class DataContextDetailInfo {
+export class DataContextDetailInfo {
     public tagType!: string
     public value!: string
     public valueType!: string
@@ -23,7 +24,7 @@ class DataContextDetailInfo {
     public webUrl!: string
 }
 
-class DataListInfo{
+export class DataListInfo{
     public url!: string
     public title!: string
     public info!: string
@@ -32,7 +33,7 @@ class DataListInfo{
 
 
 // 东方财富 列表页抓取方法
-class DFCFListUtil {
+export class DFCFListUtil {
     // 抓取一个网页中中的所有的数据 分下标榨取数据
     public async GetListDataInfo(baseUrl: string, pageNum: number, browser: playwright.Browser | null): Promise<DataListInfo[][]> {
         let isUseOtherBrowser = true;
@@ -46,6 +47,7 @@ class DFCFListUtil {
         }
         const context = await browser.newContext();
         let ansList = await this.GetListDataInfoWithPlaywright(baseUrl,pageNum,context)
+        await context.close()
         if (!isUseOtherBrowser) {
             await browser.close()
         }
@@ -60,7 +62,6 @@ class DFCFListUtil {
             jobList.push(this.getListContentDataInfo(urlNow, context))
         }
         let ansList = await Promise.all(jobList)
-        await context.close()
         return ansList
     }
 
@@ -123,7 +124,7 @@ class DFCFListUtil {
     }
 }
 // 东方财富详情页面抓取方法
-class DFCFContextUtil {
+export class DFCFContextUtil {
     // 使用进程维度爬取
     public async GetContextInfo(url: string, browser: playwright.Browser | null, useConsole: boolean) :Promise<DataContextInfo|null>{
         let isUseOtherBrowser = true;
@@ -137,6 +138,7 @@ class DFCFContextUtil {
         }
         const context = await browser.newContext();
         let ans = this.GetContextInfoWithPlaywrightContext(url,context,useConsole)
+        await context.close()
         if (!isUseOtherBrowser) {
             await browser.close()
         }
@@ -262,6 +264,3 @@ class DFCFContextUtil {
         return ansData
     }
 }
-
-
-export {DFCFListUtil, DFCFContextUtil}
