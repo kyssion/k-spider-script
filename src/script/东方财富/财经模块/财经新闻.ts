@@ -1,7 +1,6 @@
-import * as get_data from "../util/get_data";
 import * as playwright from "playwright";
-import * as Url from "url";
-
+import * as df_list_spider from "../spider/DFListSpider"
+import * as df_context_spider from "../spider/DFContextSpider"
 
 const defaultPageNum = 8;
 
@@ -130,12 +129,12 @@ let  run= async function (){
     const context = await browser.newContext();
 
     // context 维度拉取所有的列表
-    let listUtil = new get_data.DFCFListUtil()
-    let contextUtil = new get_data.DFCFContextUtil()
+    let listUtil = new df_list_spider.DFListSpider()
+    let contextUtil = new df_context_spider.DFContextSpider()
     for (let urlItem of defaultOption){
         let ans =await listUtil.GetListDataInfoWithPlaywright(urlItem.Url,urlItem.PageNum,context)
         for(let datalistInfos of ans){
-            let jobList = new Array<Promise<get_data.DataContextInfo|null>>();
+            let jobList = new Array<Promise<df_context_spider.DataContextInfo|null>>();
             for (let dataListInfo of datalistInfos){
                 jobList.push(contextUtil.GetContextInfoWithPlaywrightContext(dataListInfo.url,context,false))
             }
