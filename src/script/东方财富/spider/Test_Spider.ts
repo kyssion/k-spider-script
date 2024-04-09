@@ -21,7 +21,7 @@ async function TestContextInfo() {
         },
     );
     let item = new df_context_spider.DFContextSpider()
-    await item.GetContextInfo("https://finance.eastmoney.com/a/202403193016926098.html", browser, true)
+    await item.GetDFContextInfo("https://finance.eastmoney.com/a/202403193016926098.html", browser, true)
     await browser.close()
 }
 
@@ -29,7 +29,7 @@ async function TestListfo() {
     // 开启一个 chromium 进程
     const browser = await playwright.chromium.launch(
         {
-            headless: false,
+            headless: true,
             logger: {
                 isEnabled: (name, severity) => name === 'browser',
                 log: (name, severity, message, args) => console.log(`${name} ${message}`)
@@ -37,18 +37,12 @@ async function TestListfo() {
         },
     );
     let listUtil = new df_list_spider.DFListSpider()
-    let ans = await listUtil.GetListDataInfo("https://finance.eastmoney.com/a/cssgs_{0}.html",1,browser)
-    let contextUtil = new df_context_spider.DFContextSpider()
-    for (let items of ans){
-        for (let listItem of items){
-            let ans =await contextUtil.GetContextInfo(listItem.url,browser,true)
-            console.log(ans)
-        }
-    }
+    let ans = await listUtil.GetDFListInfo("https://finance.eastmoney.com/a/cssgs_{0}.html",10,browser)
+    console.log(ans)
     await browser.close()
 }
 
 
-TestContextInfo().then()
-// TestListfo().then()
+// TestContextInfo().then()
+TestListfo().then()
 

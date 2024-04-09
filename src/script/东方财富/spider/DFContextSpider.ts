@@ -24,7 +24,7 @@ export class DataContextDetailInfo {
 // 东方财富详情页面抓取方法
 export class DFContextSpider {
     // 使用进程维度爬取
-    public async GetContextInfo(url: string, browser: playwright.Browser | null, useConsole: boolean) :Promise<DataContextInfo|null>{
+    public async GetDFContextInfo(url: string, browser: playwright.Browser | null, useConsole: boolean) :Promise<DataContextInfo|null>{
         let isUseOtherBrowser = true;
         if (!browser) {
             browser = await playwright.chromium.launch(
@@ -35,7 +35,7 @@ export class DFContextSpider {
             isUseOtherBrowser = false;
         }
         const context = await browser.newContext();
-        let ans = await this.GetContextInfoWithPlaywrightContext(url,context,useConsole)
+        let ans = await this.GetDFContextInfoWithPlaywrightContext(url,context,useConsole)
         await context.close()
         if (!isUseOtherBrowser) {
             await browser.close()
@@ -44,7 +44,7 @@ export class DFContextSpider {
     }
 
     // 使用context 维度优化
-    public async GetContextInfoWithPlaywrightContext(url: string , context:playwright.BrowserContext,useConsole: boolean):Promise<DataContextInfo|null>{
+    public async GetDFContextInfoWithPlaywrightContext(url: string , context:playwright.BrowserContext,useConsole: boolean):Promise<DataContextInfo|null>{
         try {
             if (context==null){
                 console.log("context not find")
