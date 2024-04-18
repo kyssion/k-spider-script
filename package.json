@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "codegen": "npx playwright codegen",
-    "init": "npx playwright install"
+    "init": "npx playwright install",
+    "automate": "sequelize-automate -c sequelize-automate.config.js"
   },
   "author": "",
   "license": "ISC",
@@ -15,15 +16,14 @@
     "commander": "^12.0.0",
     "consola": "^3.2.3",
     "jsdom": "^24.0.0",
-    "pg": "^8.11.3",
-    "pg-hstore": "^2.3.4",
-    "playwright": "^1.41.2",
-    "sequelize": "^6.37.1"
+    "pg": "^8.11.5",
+    "playwright": "^1.41.2"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",
     "@types/node": "^20.11.19",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/pg": "^8.11.4"
   }
 }

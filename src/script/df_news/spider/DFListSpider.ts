@@ -1,4 +1,4 @@
-// 东方财富 列表页抓取方法
+// df_news 列表页抓取方法
 import * as playwright from "playwright";
 import * as string_util from "../../../util/string_util";
 import * as wasi from "wasi";
@@ -6,8 +6,9 @@ import * as wasi from "wasi";
 export class DataListInfo {
     public url!: string
     public title!: string
-    public info!: string
-    public time!: string
+    public introduction!: string
+    public newsTime!: string
+    public newsFrom!: number
 }
 
 export class CjOption {
@@ -158,7 +159,6 @@ export class DFListSpider {
         return ans
     }
 
-
     // 抓取一个列表页面详细数据
     private async getListContentDataInfo(url: string, context: playwright.BrowserContext): Promise<DataListInfo[]> {
         // 开启一个列表页面
@@ -205,10 +205,11 @@ export class DFListSpider {
         let ans = new Array<DataListInfo>();
         for (let item of pageInfos) {
             let newItem = new DataListInfo()
-            newItem.info = item.info
+            newItem.introduction = item.info
             newItem.title = item.title
             newItem.url = item.url
-            newItem.time = item.time
+            newItem.newsTime = item.time
+            newItem.newsFrom = 1
             ans.push(newItem)
         }
         await page.close()
